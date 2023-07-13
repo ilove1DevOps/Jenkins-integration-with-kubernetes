@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello1-deployment
+  labels:
+    app: hello1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello1
+  template:
+    metadata:
+      labels:
+        app: hello1 
+    spec:
+      containers:
+      - name: hello1server
+        image: piyushdhir121/hello1:latest
+        ports:
+        - containerPort: 3000
+        
+        
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello1-service
+spec:
+  selector:
+    app: hello1 
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 3000
+    nodePort: 31110
