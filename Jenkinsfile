@@ -15,35 +15,35 @@ pipeline {
       }
     }
 
-    stage('Build image') {
-      steps{
-        script {
-          dockerImage = docker.build dockerimagename
+    stage('Build') {
+      steps {
+        sh "docker build -t your-image:e${BUILD_NUMBER} ."
+      }
+    }
+
+    stage('Login to Docker Hub') {
+      steps {
+        withCredentials([string(credentialsId: 'Docker_Hub_piyushdhir121', variable: 'DockerHub_cred')]) {
+          sh "docker login -u piyushdhir121 -p '${DockerHub_cred}'"
+          echo 'Login Completed'
         }
       }
     }
 
-    stage('Pushing Image') {
-      environment {
-               registryCredential = 'DockerHub_cred'
-           }
-      steps{
-        script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
-            dockerImage.push("latest")
-          }
-        }
+    stage('Push to Docker Hub') {
+      steps {
+        sh "docker tag your-image:e${BUILD_NUMBER} piyushdhir121/your-image:e${BUILD_NUMBER}"
+        sh "docker push piyushdhir121/your-image:e${BUILD_NUMBER}"
+        echo "Pushed to Docker Hub. Check Docker Hub for the image with tag e${BUILD_NUMBER}."
       }
     }
 
     stage('Deploying App to Kubernetes') {
       steps {
         script {
-          kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+          kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "minikube-jenkins-cred")
         }
       }
     }
-
   }
-
 }
